@@ -1,3 +1,8 @@
+This is boilerplate for setting up a UI development project that
+has no back-end dependencies.  
+It is written in typescript, and includes material-ui, storybook and jest.
+Usage of material-ui is, I believe, optional.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
