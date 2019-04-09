@@ -1,41 +1,80 @@
-import { colors } from '@material-ui/core'
+import { colors, Typography } from '@material-ui/core'
 import { darken, fade, getContrastRatio, lighten } from '@material-ui/core/styles/colorManipulator'
 import createMuiTheme from '@material-ui/core/styles/createMuiTheme'
-import createPalette, { dark, light } from '@material-ui/core/styles/createPalette'
+import createPalette, { dark, light, Palette } from '@material-ui/core/styles/createPalette'
 import createTypography, { TypographyOptions } from '@material-ui/core/styles/createTypography'
+import { TypographyProps } from '@material-ui/core/Typography'
+import { FontFamilyProperty, FontWeightAbsolute } from 'csstype'
+import { FC, PropsWithChildren } from 'react'
 import * as React from 'react'
 import { fw, fwNeuton } from './fontWeights'
+import {CSSProperties} from '@material-ui/styles/withStyles'
 
-// For 1.1rem or bigger, use lower contrast ratio
-const bigTextColor = 'rgba(0,0,0,0.70)'
+/******************
+ * COMMONS INDEPENDENT OF BASE DECISIONS
+ */
 
-const primary1Color = colors.indigo['500']
-// primary chosen to look white, but not bleed onto adjacent dark background
-const darkForeground = 'rgba(255, 255, 255, .95)'
 
-function getContrastText(hue: string) {
-    if (getContrastRatio(hue, primary1Color) < 7) {
-        return darkForeground
+/**
+ * COLOR
+ */
+type Color = string
+
+/** DISTANCE */
+
+type Px = number  // pixel
+type Ratio = number
+
+/** TYPE */
+
+type Rem = number
+
+/******************
+
+BASE DECISIONS
+
+
+ main palettes, fonts, font weight mapping
+
+
+ ******************/
+
+/** Typography */
+
+const pxPerRem:Px = 16  // size of font in pixels at <html> element (base of rem units)
+
+function makeTypoComponent(name: string, outerProps: TypographyProps): FC<TypographyProps> {
+    const ret = function (props:PropsWithChildren<TypographyProps>) {
+        const { children, ...tprops} = props
+        const passedProps = { ...outerProps, ...tprops }
+        return (<Typography {...passedProps}>{children}</Typography>)
     }
-    return light.text.primary
+    ret.displayName = name
+    return ret
 }
 
 
-const ynPalette = createPalette({
+/** Color */
+
+// primary chosen to look white, but not bleed onto adjacent dark background
+const lightForeground = colors.indigo['500']
+const darkForeground: Color = 'rgba(255, 255, 255, .95)'
+
+function getContrastTextColor(background: Color) {
+    return (getContrastRatio(background, lightForeground) < 7) ? darkForeground : lightForeground
+}
+
+
+const lightPalette:Palette = createPalette({
     type: 'light',
     primary: colors.indigo,
-    getContrastText,
+    getContrastText: getContrastTextColor,
     text: {
-        secondary: colors.indigo['500']
+        secondary: lightForeground
     }
 })
 
-
-const typographyOptions: TypographyOptions = {fontFamily: '"Lato", "Helvetica", "Arial", sans-serif',}
-export const typography = createTypography(ynPalette, typographyOptions)
-export const ynBaseTheme = createMuiTheme({palette: ynPalette, typography})
-
-const darkPalette = createPalette({
+const darkPalette: Palette = createPalette({
     type: 'dark',
     background: {
         default: colors.indigo['500'],
@@ -45,25 +84,109 @@ const darkPalette = createPalette({
         ...dark.text,
         primary: darkForeground,
     },
-    /*
-        input: {
-            ...dark.input,
-            inputText: darkForeground,
-        },
-    */
     action: {
         ...dark.action,
         active: darkForeground,
     },
-    getContrastText,
-
-
+    getContrastText: getContrastTextColor,
 })
 
-export const darkTypography = createTypography(darkPalette, typography)
-export const ynDarkTheme = createMuiTheme({palette: darkPalette, typography: darkTypography})
 
-const frameBackground = primary1Color
+const mainFontFamily: FontFamilyProperty = '"IBM Plex Sans", "Helvetica", "Arial", "sans-serif"'
+const altFontFamily: FontFamilyProperty = '"Aleo", "", "Bookman", "serif"'
+
+
+const fontDefs = {
+    plex: {
+        fontFamily: '"IBM Plex Sans", "Helvetica", "Arial", "sans-serif"',
+        weights:  {
+            thin: 100,
+            extraLight: 200,
+            light: 300,
+            regular: 400,
+            medium: 500,
+            semiBold: 600,
+            bold: 700,
+        }
+
+    }
+}
+
+const fonts = {
+    main: fontDefs.plex
+    
+}
+
+
+function buildVariant(fontFamily: FontFamilyProperty, fontWeight:FontWeightAbsolute, fontSize:Rem, lineHeight:Ratio, letterSpacing: Ratio, casing: CSSProperties = {}) {
+    return {
+        fontFamily,
+        fontWeight,
+        fontSize,
+        lineHeight,
+        letterSpacing,
+        ...casing,
+    }
+}
+
+const caseAllCaps: CSSProperties = {
+    textTransform: 'uppercase'
+};
+
+const variants = {
+    h1: buildVariant(mainFontFamily, fonts.main.weights.extraLight, 96, 1, -1.5),
+    h2: buildVariant(mainFontFamily, fonts.main.weights.light, 60, 1, -0.5),
+    h3: buildVariant(mainFontFamily, fonts.main.weights.light, 48, 1.04, 0),
+    h4: buildVariant(mainFontFamily, fonts.main.weights.regular, 34, 1.17, 0.25),
+    h5: buildVariant(mainFontFamily, fonts.main.weights.medium, 24, 1.33, 0),
+    h6: buildVariant(mainFontFamily, fonts.main.weights.medium, 20, 1.6, 0.15),
+    subtitle1: buildVariant(mainFontFamily, fonts.main.weights.regular, 16, 1.75, 0.15),
+    subtitle2: buildVariant(mainFontFamily, fonts.main.weights.medium, 14, 1.57, 0.1),
+    body1: buildVariant(mainFontFamily, fonts.main.weights.regular, 16, 1.5, 0.15),
+    body2: buildVariant(mainFontFamily, fonts.main.weights.regular, 14, 1.43, 0.15),
+    button: buildVariant(mainFontFamily, fonts.main.weights.medium, 14, 1.75, 0.4, caseAllCaps),
+    caption: buildVariant(mainFontFamily, fonts.main.weights.regular, 12, 1.66, 0.4),
+    overline: buildVariant(mainFontFamily, fonts.main.weights.regular, 12, 2.66, 1, caseAllCaps),
+};
+
+
+const typographyOptions: TypographyOptions = {
+    htmlFontSize: pxPerRem,
+    ...variants
+}
+
+export const lightTypography = createTypography(lightPalette, typographyOptions)
+export const lightTheme = createMuiTheme({palette: lightPalette, typography: lightTypography})
+
+export const darkTypography = createTypography(darkPalette, typographyOptions)
+export const darkTheme = createMuiTheme({palette: darkPalette, typography: darkTypography})
+
+/********************
+ * COMMONS DEPENDENT ON BASE DECISIONS
+ */
+
+/*****************
+ * SPECIFIC TO APPLICATION
+ */
+
+export const H1 =
+    makeTypoComponent('H1', {variant:'h1', gutterBottom: true})
+export const H2 =
+    makeTypoComponent('H2', {variant:'h2', gutterBottom: true})
+export const H3 =
+    makeTypoComponent('H3', {variant:'h3', gutterBottom: true})
+export const H4 =
+    makeTypoComponent('H4', {variant:'h4', gutterBottom: true})
+export const H5 =
+    makeTypoComponent('H5', {variant:'h5', gutterBottom: true})
+export const H6 =
+    makeTypoComponent('H6', {variant:'h6', gutterBottom: true})
+
+
+
+/** ALL GRIST FROM HERE TO END - bring upward to promote */
+
+const frameBackground = '#000000'
 const frameButtonBackground = colors.indigo.A700
 
 // for text, etc.
@@ -72,28 +195,6 @@ const frameForeground = light.text.primary
 /* This is mostly (but not all!) obsolete. */
 export const palette/*: IPalette*/ = {
 
-    /*
-        defaults from mui beta, add as neeted:
-            use in place of "fade": tinyColor(colors.darkBlack).setAlpha(0.54),
-
-             palette: {
-             primary1Color     : _colors.cyan500,
-             primary2Color     : _colors.cyan700,
-             primary3Color     : _colors.grey400,
-             accent1Color      : _colors.pinkA200,
-             accent2Color      : _colors.grey100,
-             accent3Color      : _colors.grey500,
-             textColor         : _colors.darkBlack,
-             secondaryTextColor: (0, _colorManipulator.fade)(_colors.darkBlack, 0.54),
-             alternateTextColor: _colors.white,
-             canvasColor       : _colors.white,
-             borderColor       : _colors.grey300,
-             disabledColor     : (0, _colorManipulator.fade)(_colors.darkBlack, 0.3),
-             pickerHeaderColor : _colors.cyan500,
-             clockCircleColor  : (0, _colorManipulator.fade)(_colors.darkBlack, 0.07),
-             shadowColor       : _colors.fullBlack
-         }
-     */
     canvasColor: '#fff',
     primary1Color: colors.cyan['500'],
 
@@ -116,7 +217,7 @@ export const palette/*: IPalette*/ = {
     oddTableRow: colors.grey['200'],
     hoverBackground: '#e2e5f5',
 
-    secondaryButtonBackground: '' + fade(primary1Color,0.8),
+    secondaryButtonBackground: '' + fade(lightForeground,0.8),
 
     yea: 'green',
     nay: '#DD2C00',
@@ -130,7 +231,7 @@ export const palette/*: IPalette*/ = {
     formLabelColor: 'rgba(0,0,0,0.498)',
     floatingLabelColor: 'rgba(0,0,0,0.498)',
 
-    pageTitle: '' + fade(primary1Color!,.6),
+    pageTitle: '' + fade(lightForeground!,.6),
     modalHeader: '#F8E71C',
 
     disabledButtonBackground: colors.grey['700'],
@@ -220,7 +321,7 @@ export const baseStyles = {
     },
 
     textAnchor: {
-        color: primary1Color,
+        color: lightForeground,
         textDecoration: 'underline',
         cursor: 'pointer',
     },

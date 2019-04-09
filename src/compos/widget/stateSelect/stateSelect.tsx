@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { Theme } from '@material-ui/core'
 import Checkbox from '@material-ui/core/Checkbox'
 import Chip from '@material-ui/core/Chip'
@@ -14,7 +15,9 @@ import {
     YnPureComponent
 } from '../../ynComponent'
 
-const useStyles = makeStyles((theme: Theme) => ({
+
+
+const useStyles = makeStyles((theme: Theme) => createStyles({
     root       : {
         display : 'flex',
         flexWrap: 'wrap',
@@ -79,7 +82,13 @@ const names = [
     'Kelly Snyder',
 ]
 
+/*
+  export default function makeStyles<S extends Styles<any, any,CLASSKEY>, CLASSKEY extends string=string>(
+    styles: S,
+    options?: WithStylesOptions,
+  ): StylesHook<S>;
 
+ */
 export function StateSelect() {
     const [selectedState, setSelectedState] = useState(undefined)
     const [prefix, setPrefix] = useState('')

@@ -1,3 +1,6 @@
+This project is an environment for creating curated indexes of legislative bills.
+
+
 This is boilerplate for setting up a UI development project that
 has no back-end dependencies.  
 It is written in typescript, and includes material-ui, storybook and jest.
